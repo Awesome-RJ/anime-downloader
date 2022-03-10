@@ -25,8 +25,11 @@ class Gcloud(BaseExtractor):
             logger.warning('File not found (Most likely deleted)')
             return {'stream_url': ''}
 
-        for a in data:
-            if a['label'] == self.quality:
-                return {'stream_url': a['file']}
-
-        return {'stream_url': ''}
+        return next(
+            (
+                {'stream_url': a['file']}
+                for a in data
+                if a['label'] == self.quality
+            ),
+            {'stream_url': ''},
+        )

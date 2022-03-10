@@ -42,15 +42,12 @@ class VostFree(Anime, sitename='vostfree'):
         links = []
 
         for player in players:
-            current = player.select(f'div.new_player_{server}')
-            if current:
+            if current := player.select(f'div.new_player_{server}'):
                 links.append(self.getLink(soup.find('div', {'id': f'content_{current[0]["id"]}'}).text, server))
                 continue
 
             alternate_server = servers[int(not bool(servers.index(server)))]
-            current = player.select(f'div.new_player_{alternate_server}')
-
-            if current:
+            if current := player.select(f'div.new_player_{alternate_server}'):
                 links.append(self.getLink(soup.find('div', {'id': f'content_{current[0]["id"]}'}).text, alternate_server))
                 continue
 

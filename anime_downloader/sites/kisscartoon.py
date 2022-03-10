@@ -28,7 +28,7 @@ class KisscartoonEpisode(AnimeEpisode, sitename='kisscartoon'):
                 iframe_regex = r'<iframe src="([^"]*?)"'
                 url = re.search(iframe_regex, api['value']).group(1)
                 if url.startswith('//'):
-                    url = 'https:' + url
+                    url = f'https:{url}'
                 if url.endswith('mp4upload.com/embed-.html') or url.endswith('yourupload.com/embed/'):  # Sometimes returns empty link
                     url = ''
                     continue
@@ -74,7 +74,7 @@ class KissCartoon(KissAnime, sitename='kisscartoon'):
         ret = [str(a['href'])
                for a in soup.select('.listing a')]
 
-        if ret == []:
+        if not ret:
             err = 'No episodes found in url "{}"'.format(self.url)
             args = [self.url]
             raise NotFoundError(err, *args)

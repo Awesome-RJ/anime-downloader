@@ -13,9 +13,8 @@ class KissanimeEpisode(AnimeEpisode, sitename='kissanime'):
     _base_url = 'https://kissanime.ru'
 
     def _get_sources(self):
-        ret = helpers.get(self.url + '&s=hydrax', sel=True).text
-        data = self._scrape_episode(ret)
-        return data
+        ret = helpers.get(f'{self.url}&s=hydrax', sel=True).text
+        return self._scrape_episode(ret)
 
     def _scrape_episode(self, response):
         regex = r'iframe.*src="(https://.*?)"'
@@ -79,12 +78,10 @@ class KissAnime(Anime, sitename='kissanime'):
                for a in soup.select('table.listing a')]
         logger.debug('Unfiltered episodes : {}'.format(ret))
         filter_list = ['opening', 'ending', 'special', 'recap']
-        ret = list(filter(
-            lambda x: not any(s in x.lower() for s in filter_list), ret
-        ))
+        ret = list(filter(lambda x: all(s not in x.lower() for s in filter_list), ret))
         logger.debug('Filtered episodes : {}'.format(ret))
 
-        if ret == []:
+        if not ret:
             err = 'No episodes found in url "{}"'.format(self.url)
             args = [self.url]
             raise NotFoundError(err, *args)

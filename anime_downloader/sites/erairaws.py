@@ -35,15 +35,14 @@ class EraiRaws(Anime, sitename='erai-raws'):
         # A mix of episodes and folders containing episode
         # Keeping the nodes to check the titles later for quality selection
         linkNodes = soup.select("td[title] > a[href]")
-        folderIndices = [i for i, x in enumerate(
-            linkNodes) if "folder" in x.get("href")]
-
-        while len(folderIndices) > 0:
+        while folderIndices := [
+            i for i, x in enumerate(linkNodes) if "folder" in x.get("href")
+        ]:
             for index in folderIndices:
                 link = linkNodes[index].get("href")
 
                 # Sometimes we get a 403 and have to wait for 5 seconds
-                for i in range(6):
+                for _ in range(6):
                     try:
                         soup = helpers.soupify(
                             helpers.get(link, cookies=cookies))
@@ -65,12 +64,7 @@ class EraiRaws(Anime, sitename='erai-raws'):
                 if type(y) == NavigableString:
                     linkNodes[x] = y.parent
 
-            folderIndices = [i for i, x in enumerate(
-                linkNodes) if "folder" in x.get("href")]
-
-        links = [x.get("href") for x in linkNodes if self.quality in x.text]
-
-        return links
+        return [x.get("href") for x in linkNodes if self.quality in x.text]
 
     def getTorrents(self, soup, cookies):
         # Clickable nodes, such as: Notifications, Episodes, Batch, etc
@@ -95,8 +89,6 @@ class EraiRaws(Anime, sitename='erai-raws'):
         max_page_special = int(
             re.search(max_page_regex.format("load_more_2"), str(soup)).group(1))
 
-        post_data = {"action": load}
-
         # Get data to post and map to query, e.g:
         """
         {
@@ -105,8 +97,17 @@ class EraiRaws(Anime, sitename='erai-raws'):
             'order': 'DESC'
         }
         """
-        post_data["query"] = json.dumps(json.loads(re.search(
-            "posts.*?(\{.*?order.*?\})", str(soup)).group(1).replace("\\", "")), separators=(",", ":"))
+        post_data = {
+            "action": load,
+            "query": json.dumps(
+                json.loads(
+                    re.search("posts.*?(\{.*?order.*?\})", str(soup))
+                    .group(1)
+                    .replace("\\", "")
+                ),
+                separators=(",", ":"),
+            ),
+        }
 
         episodes = []
 
@@ -116,10 +117,11 @@ class EraiRaws(Anime, sitename='erai-raws'):
             if page >= max_page:
                 post_data["action"] = "load_more_2"
 
-            resp = helpers.post(
-                "https://erai-raws.info/wp-admin/admin-ajax.php", data=post_data, cookies=cookies)
-
-            if resp:
+            if resp := helpers.post(
+                "https://erai-raws.info/wp-admin/admin-ajax.php",
+                data=post_data,
+                cookies=cookies,
+            ):
                 soup = helpers.soupify(resp)
 
                 # List of tuples of (quality, magnet)
@@ -155,14 +157,13 @@ class EraiRaws(Anime, sitename='erai-raws'):
         titles = get_close_matches(query, titles, cutoff=0.2)
         result_data = [x for x in result_data if x.text.strip() in titles]
 
-        search_results = [
+        return [
             SearchResult(
                 title=result.text.strip(),
                 url="https://erai-raws.info/anime-list/" + result.get("href")
             )
             for result in result_data
         ]
-        return search_results
 
     def _scrape_episodes(self):
         if self.quality not in self.QUALITIES:
@@ -207,7 +208,7 @@ class EraiRawsEpisode(AnimeEpisode, sitename='erai-raws'):
             'accept-language': 'en-GB,en;q=0.9'
         }
 
-        for i in range(4):
+        for _ in range(4):
             # Using a request session as helpers is lacking the head function, and having a session makes everything more seamless
             session = requests.session()
             resp = session.get(

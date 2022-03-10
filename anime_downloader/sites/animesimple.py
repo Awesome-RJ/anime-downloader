@@ -19,8 +19,9 @@ class AnimeSimple(Anime, sitename='animesimple'):
         search_results = helpers.soupify(helpers.get(cls.url, params={'q': query})).select('div.card > a')
         return [
             SearchResult(
-                title=i.get('title') if i.get('title') else i.select('img')[0].get('alt'),
-                url=i.get('href'))
+                title=i.get('title') or i.select('img')[0].get('alt'),
+                url=i.get('href'),
+            )
             for i in search_results
         ]
 
@@ -50,7 +51,7 @@ class AnimeSimpleEpisode(AnimeEpisode, sitename='animesimple'):
 
         sources_list = []
         for i in sources:
-            extractor = 'no_extractor' if not get_extractor(i['host']) else i['host']
+            extractor = i['host'] if get_extractor(i['host']) else 'no_extractor'
             embed = re.search(r"src=['|\"]([^\'|^\"]*)", str(i['player']), re.IGNORECASE).group(1)
             sources_list.append({
                 'extractor': extractor,

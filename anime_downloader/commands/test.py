@@ -50,19 +50,16 @@ def command(test_query):
         threads.append(t)
 
     for thread in threads:
-        if os.name == 'nt':
-            p, f = 'Works: ', "Doesn't work: "  # Emojis doesn't work in cmd
-        else:
-            p, f = '✅ ', '❌ '
+        p, f = ('Works: ', "Doesn't work: ") if os.name == 'nt' else ('✅ ', '❌ ')
         thread.join(timeout=10)
-        if not thread.is_alive():
-            if not thread.exception:
-                # echo(click.style('Works ', fg='green') + site)
-                echo(click.style(p, fg='green') + thread.site)
-            else:
-                logging.debug('Error occurred during testing')
-                logging.debug(thread.exception)
-                echo(click.style(f, fg='red') + thread.site)
-        else:
+        if thread.is_alive():
             logging.debug('timeout during testing')
             echo(click.style(f, fg='red') + thread.site)
+
+        elif thread.exception:
+            logging.debug('Error occurred during testing')
+            logging.debug(thread.exception)
+            echo(click.style(f, fg='red') + thread.site)
+        else:
+            # echo(click.style('Works ', fg='green') + site)
+            echo(click.style(p, fg='green') + thread.site)

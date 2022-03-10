@@ -10,7 +10,7 @@ class Streamium(BaseExtractor):
     def _get_data(self):
         fragment = urlparse(self.url).fragment
         logger.debug('Fragment: {}'.format(fragment))
-        url = 'https://streamium.xyz/gocdn.php?v=' + fragment
+        url = f'https://streamium.xyz/gocdn.php?v={fragment}'
         file = helpers.get(url, referer=self.url).json()
         if file.get('file'):
             return {

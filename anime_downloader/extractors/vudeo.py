@@ -9,8 +9,7 @@ class Vudeo(BaseExtractor):
         soup = str(helpers.get(self.url).text)
         # Group 3 is the url
         source_regex = r"source(s|):\s*\[(\"|')(.[^\"|']*)"
-        source = re.search(source_regex, soup)
-        if source:
+        if source := re.search(source_regex, soup):
             url = source.group(3)
             return {
                 'stream_url': url,

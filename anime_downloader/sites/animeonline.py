@@ -14,7 +14,7 @@ class AnimeOnline(Anime, sitename='animeonline360'):
         try:
             r = helpers.soupify(helpers.get('https://animeonline360.me/', params={'s': query})).select('div.title')
             results = [{"title": x.text, "url": x.a['href']} for x in r]
-            search_results = [
+            return [
                 SearchResult(
                     title=i['title'],
                     url=i['url'],
@@ -25,8 +25,6 @@ class AnimeOnline(Anime, sitename='animeonline360'):
                 )
                 for i in results
             ]
-
-            return search_results
         except:
             return ""
 

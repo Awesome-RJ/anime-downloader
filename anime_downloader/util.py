@@ -103,7 +103,7 @@ def search(query, provider, val=None, season_info=None, ratio=50):
     # Loop to allow re-propmt if the user chooses incorrectly
     # Makes it harder to unintentionally exit the anime command if it's automated
     while True:
-        if val == None:
+        if val is None:
             val = click.prompt('Enter the anime no{}:'. format(' (0 to switch provider)' * (season_info != None)),
                                type=int, default=1, err=True)
         try:
@@ -151,7 +151,7 @@ def download_metadata(file_format, metdata, episode, filename='metdata.json'):
     # to '{animeinfo_anime_title}/'
     location = ''.join(file_format.split('/')[:-1])
     location = format_filename(location, episode)
-    location_metadata = location + '/' + filename
+    location_metadata = f'{location}/{filename}'
     if os.path.isfile(location_metadata):
         logger.debug('Metadata file already downloaded.')
         return False
@@ -168,7 +168,7 @@ def split_anime(anime, episode_range):
     from anime_downloader.sites.anime import AnimeEpisode
     try:
         start, end = [int(x) for x in episode_range.split(':')]
-        ep_range = [x for x in range(start, end)]
+        ep_range = list(range(start, end))
         eps = [x for x in anime._episode_urls if x[0] in ep_range]
 
         anime._episode_urls = [(x[0], x[1]) for x in eps]
@@ -189,7 +189,7 @@ def parse_episode_range(max_range, episode_range):
             int(max_range._episode_urls[-1][0]))
         episode_range += str(length + 1)
     if episode_range.startswith(':'):
-        episode_range = '1' + episode_range
+        episode_range = f'1{episode_range}'
     return episode_range
 
 
@@ -202,8 +202,7 @@ def parse_ep_str(anime, grammar):
         if ':' in episode_grammar:
             start, end = parse_episode_range(anime, episode_grammar).split(':')
             episode_grammar = '%d:%d' % (int(start), int(end) + 1)
-            for episode in split_anime(anime, episode_grammar):
-                episodes.append(episode)
+            episodes.extend(iter(split_anime(anime, episode_grammar)))
         else:
             from anime_downloader.sites.anime import AnimeEpisode
 
@@ -239,7 +238,7 @@ def play_episode(episode, *, player, title, episodes="0:0"):
     elif player == "android":
         p = subprocess.Popen(['am', 'start', '-a', 'android.intent.action.VIEW',
                               '-t', 'video/*', '-d', f'{episode.source().stream_url}'])
-        if episodes == None or ':' in episodes and episodes != "0:1":
+        if episodes is None or ':' in episodes and episodes != "0:1":
             input("Press enter to continue\n")
     else:
         p = subprocess.Popen([player, episode.source().stream_url])
@@ -315,8 +314,8 @@ def format_command(cmd, episode, file_format, speed_limit, path):
     else:
         useragent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.87 Safari/537.36'
 
-    stream_url = episode.source().stream_url if not episode.url.startswith(
-        'magnet:?xt=urn:btih:') else episode.url
+    stream_url = episode.url if episode.url.startswith(
+        'magnet:?xt=urn:btih:') else episode.source().stream_url
     stream_url = stream_url if 'magnet:?xt=urn:btih:' not in stream_url else stream_url.replace(
         'https://', '')
 
@@ -353,7 +352,7 @@ def format_command(cmd, episode, file_format, speed_limit, path):
 
 
 def deobfuscate_packed_js(packedjs):
-    return eval_in_node('eval=console.log; ' + packedjs)
+    return eval_in_node(f'eval=console.log; {packedjs}')
 
 
 def eval_in_node(js: str):
@@ -374,9 +373,9 @@ def open_magnet(magnet):
 
 
 def external_download(cmd, episode, file_format, speed_limit, path=''):
-    logger.debug('cmd: ' + cmd)
+    logger.debug(f'cmd: {cmd}')
     logger.debug('episode: {!r}'.format(episode))
-    logger.debug('file format: ' + file_format)
+    logger.debug(f'file format: {file_format}')
 
     cmd = format_command(cmd, episode, file_format, speed_limit, path=path)
 
@@ -476,8 +475,6 @@ class ClickListOption(click.Option):
 
     def type_cast_value(self, ctx, value):
         try:
-            if isinstance(value, list):
-                return value
-            return ast.literal_eval(value)
+            return value if isinstance(value, list) else ast.literal_eval(value)
         except:
             raise click.BadParameter(value)

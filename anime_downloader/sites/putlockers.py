@@ -15,7 +15,7 @@ class PutLockers(Anime, sitename="putlockers"):
             quote_plus(query))
         soup = helpers.soupify(helpers.get(search_url))
 
-        search_results = [
+        return [
             SearchResult(
                 title=x.find("img").get("alt"),
                 url=x.get("href"),
@@ -25,8 +25,6 @@ class PutLockers(Anime, sitename="putlockers"):
             )
             for x in soup.select("div.item > a")
         ]
-
-        return search_results
 
     def _scrape_episodes(self):
         soup = helpers.soupify(helpers.get(self.url))
@@ -50,9 +48,7 @@ class PutLockersEpisode(AnimeEpisode, sitename="putlockers"):
         text = helpers.get(self.url).text
 
         sources_list = []
-        regexed = re.search(r'Base64.decode\("(.*)"\)', text)
-
-        if regexed:
+        if regexed := re.search(r'Base64.decode\("(.*)"\)', text):
             link = helpers.soupify(base64.b64decode(
                 regexed.group(1)).decode()).iframe.get("src")
             sources_list.append({
@@ -67,16 +63,13 @@ class PutLockersEpisode(AnimeEpisode, sitename="putlockers"):
         servers = soup.select("p.server_version a")[:10]
 
         for server in servers:
-            page_link = server.get("href")
-
-            if page_link:
+            if page_link := server.get("href"):
                 text = helpers.get(page_link).text
                 soup = helpers.soupify(text)
-                regexed = re.search(r'Base64.decode\("(.*)"\)', text)
-                if regexed:
-                    iframe = helpers.soupify(base64.b64decode(
-                        regexed.group(1)).decode()).iframe
-                    if iframe:
+                if regexed := re.search(r'Base64.decode\("(.*)"\)', text):
+                    if iframe := helpers.soupify(
+                        base64.b64decode(regexed.group(1)).decode()
+                    ).iframe:
                         link = iframe.get("src")
 
                         sources_list.append({
@@ -86,8 +79,7 @@ class PutLockersEpisode(AnimeEpisode, sitename="putlockers"):
                             "version": "dubbed"
                         })
 
-                link_node = soup.select("div.mediaplayer a")
-                if link_node:
+                if link_node := soup.select("div.mediaplayer a"):
                     link = link_node[0].get("href")
 
                     # There's also vshare - but that didn't work for me

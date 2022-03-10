@@ -13,8 +13,11 @@ class Yify(BaseExtractor):
         data = helpers.get(api).json()
         logger.debug('Data: {}'.format(data))
 
-        for i in data:
-            if self.quality in i.get('label', ''):
-                return {'stream_url': i['file']}
-
-        return {'stream_url': ''}
+        return next(
+            (
+                {'stream_url': i['file']}
+                for i in data
+                if self.quality in i.get('label', '')
+            ),
+            {'stream_url': ''},
+        )

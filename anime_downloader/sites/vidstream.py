@@ -61,9 +61,16 @@ class VidStreamEpisode(AnimeEpisode, sitename='vidstream'):
         soup = helpers.soupify(helpers.get(self.url))
         iframes = soup.select('iframe')
         logger.debug('Iframes: {}'.format(iframes))
-        for i in iframes:
-            # Simple check in case there's advertising iframes.
-            if 'streaming.php' in i.get('src'):
-                return [('vidstream', i.get('src'),)]
-
-        return ''
+        return next(
+            (
+                [
+                    (
+                        'vidstream',
+                        i.get('src'),
+                    )
+                ]
+                for i in iframes
+                if 'streaming.php' in i.get('src')
+            ),
+            '',
+        )

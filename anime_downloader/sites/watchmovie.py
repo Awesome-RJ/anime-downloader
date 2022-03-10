@@ -19,7 +19,10 @@ class WatchMovie(Anime, sitename='watchmovie'):
 
     @classmethod
     def search(cls, query):
-        search_results = helpers.soupify(helpers.get(cls.url + '/search.html', params={'keyword': query})).select('a.videoHname')
+        search_results = helpers.soupify(
+            helpers.get(f'{cls.url}/search.html', params={'keyword': query})
+        ).select('a.videoHname')
+
 
         search_results = [
             SearchResult(
@@ -37,7 +40,7 @@ class WatchMovie(Anime, sitename='watchmovie'):
         if 'anime-info' in self.url:
             url = self.url.replace('anime-info', 'anime') + '/all'
         else:
-            url = self.url + '/season'
+            url = f'{self.url}/season'
         soup = helpers.soupify(helpers.get(url)).select('a.videoHname')
         return ['https://watchmovie.movie' + a.get('href') for a in soup[::-1]]
 
@@ -62,13 +65,15 @@ class WatchMovieEpisode(AnimeEpisode, sitename='watchmovie'):
 
         sources_list = []
         for i in sources:
-            for j in extractors:
-                if j in i.get('data-video'):
-                    sources_list.append({
-                        'extractor': extractors[j][0],
-                        'url': i.get('data-video'),
-                        'server': extractors[j][1],
-                        'version': 'subbed'
-                    })
+            sources_list.extend(
+                {
+                    'extractor': extractors[j][0],
+                    'url': i.get('data-video'),
+                    'server': value[1],
+                    'version': 'subbed',
+                }
+                for j, value in extractors.items()
+                if j in i.get('data-video')
+            )
 
         return self.sort_sources(sources_list)

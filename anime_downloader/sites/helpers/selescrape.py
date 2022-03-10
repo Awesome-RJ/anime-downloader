@@ -46,10 +46,7 @@ def get_browser_config():
         'win32': 'chrome'
     }
     for a in os_browser:
-        if platform.startswith(a):
-            browser = os_browser[a]
-        else:
-            browser = 'chrome'
+        browser = os_browser[a] if platform.startswith(a) else 'chrome'
     value = data['dl']['selescrape_browser']
     value = value.lower() if value else value
     if value in ['chrome', 'firefox']:
@@ -59,18 +56,16 @@ def get_browser_config():
 
 def get_browser_executable():
     value = data['dl']['selescrape_browser_executable_path']
-    executable_value = value.lower() if value else value
-    return executable_value
+    return value.lower() if value else value
 
 
 def get_driver_binary():
     value = data['dl']['selescrape_driver_binary_path']
-    binary_path = value.lower() if value else value
-    return binary_path
+    return value.lower() if value else value
 
 
 def add_url_params(url, params):
-    return url if not params else url + '?' + urlencode(params)
+    return f'{url}?{urlencode(params)}' if params else url
 
 
 def driver_select():
@@ -83,12 +78,12 @@ def driver_select():
     data_dir = get_data_dir()
     executable = get_browser_executable()
     driver_binary = get_driver_binary()
-    binary = None if not driver_binary else driver_binary
+    binary = driver_binary or None
     if browser == 'firefox':
         fireFoxOptions = webdriver.FirefoxOptions()
         fireFoxOptions.headless = True
         fireFoxOptions.add_argument('--log fatal')
-        if binary == None:
+        if binary is None:
             driver = webdriver.Firefox(options=fireFoxOptions, service_log_path=os.path.devnull)
         else:
             try:
@@ -107,21 +102,15 @@ def driver_select():
         chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument("--window-size=1920,1080")
         chrome_options.add_argument(f'user-agent={get_random_header()}')
-        if binary == None:
-            if executable == None:
-                driver = webdriver.Chrome(options=chrome_options)
-            else:
-                from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
-                cap = DesiredCapabilities.CHROME
-                cap['binary_location'] = executable
-                driver = webdriver.Chrome(desired_capabilities=cap, options=chrome_options)
+        if executable is None:
+            driver = webdriver.Chrome(options=chrome_options)
         else:
-            if executable == None:
-                driver = webdriver.Chrome(options=chrome_options)
+            from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+            cap = DesiredCapabilities.CHROME
+            cap['binary_location'] = executable
+            if binary is None:
+                driver = webdriver.Chrome(desired_capabilities=cap, options=chrome_options)
             else:
-                from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
-                cap = DesiredCapabilities.CHROME
-                cap['binary_location'] = executable
                 driver = webdriver.Chrome(executable_path=binary, desired_capabilities=cap, options=chrome_options, service_log_path=os.path.devnull)
     return driver
 
@@ -134,16 +123,14 @@ def status_select(driver, url, status='hide'):
     Treat it like it isnt here.
     '''
     try:
-        if status == 'hide':
+        if status == 'hide' or status != 'show':
             driver.get(url)
-        elif status == 'show':
+        else:
             r = requests.head(url)
             if r.status_code == 503:
                 raise RuntimeError("This website's sevice is unavailable or has cloudflare on.")
             driver.get(url)
             return r.status_code
-        else:
-            driver.get(url)
     except requests.ConnectionError:
         raise RuntimeError("Failed to establish a connection using the requests library.")
 
@@ -170,7 +157,7 @@ def cloudflare_wait(driver):
             logger.error(f'Timeout:\nCouldnt bypass cloudflare. \
             See the screenshot for more info:\n{get_data_dir()}/screenshot.png')
         title = driver.title
-        if not title == "Just a moment...":
+        if title != "Just a moment...":
             break
     time.sleep(1)  # This is necessary to make sure everything has loaded fine.
 

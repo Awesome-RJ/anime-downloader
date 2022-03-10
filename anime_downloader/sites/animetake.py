@@ -62,10 +62,7 @@ class AnimeTakeEpisode(AnimeEpisode, sitename='animetake'):
         }
 
         links = []
-        gstore_source = re.search(gstore_regex, str(soup))
-
-        # No idea if 2 player
-        if gstore_source:
+        if gstore_source := re.search(gstore_regex, str(soup)):
             source = gstore_source.group(1)
             # All this fuckery below to fix the semi broken json.
 
@@ -96,8 +93,7 @@ class AnimeTakeEpisode(AnimeEpisode, sitename='animetake'):
 
             # Produces the regex based on server name.
             source_regex = server + iframe_regex
-            result = re.search(source_regex, str(soup))
-            if result:
+            if result := re.search(source_regex, str(soup)):
                 link = self.get_real_url('https://animetake.tv' + result.group(1))
                 links.append({
                              'url': link,

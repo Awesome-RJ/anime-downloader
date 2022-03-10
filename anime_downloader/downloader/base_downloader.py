@@ -36,12 +36,15 @@ class BaseDownloader:
             headers['referer'] = self.source.referer
 
         # I couldn't figure out how to retry based on headers with httpadapter.
-        for i in range(5):
+        for _ in range(5):
             with requests.get(self.source.stream_url, headers=headers, stream=True, verify=False) as r:
                 self._total_size = max(int(r.headers.get('Content-length', 0)),
                                        int(r.headers.get('Content-Length', 0)),
                                        int(r.headers.get('content-length', 0)))
-                if not self._total_size and not r.headers.get('Transfer-Encoding') == 'chunked':
+                if (
+                    not self._total_size
+                    and r.headers.get('Transfer-Encoding') != 'chunked'
+                ):
                     continue
 
                 if os.path.exists(self.path):
@@ -51,12 +54,16 @@ class BaseDownloader:
                         return True
                     else:
                         # NOTE: Unknown size assumes no mismatch and will redownload the file.
-                        if not abs(os.stat(self.path).st_size - self._total_size) < 10 and self._total_size != 0:
+                        if (
+                            abs(os.stat(self.path).st_size - self._total_size)
+                            >= 10
+                            and self._total_size != 0
+                        ):
                             logger.error('Total size mismatch ({} and {}), the file already downloaded probably comes from a different source.'.format(
                                          self._total_size, abs(os.stat(self.path).st_size)))
                             sys.exit(1)
 
-        logger.debug('Total size: ' + str(self._total_size))
+        logger.debug(f'Total size: {str(self._total_size)}')
 
     def download(self):
         # TODO: Clean this up

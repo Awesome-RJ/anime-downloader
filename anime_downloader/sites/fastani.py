@@ -63,9 +63,11 @@ class FastAni(Anime, sitename="fastani"):
           ]
         }
         """
-        episodes = [j["file"] for i in [x["episodes"] for x in cdnData["seasons"]] for j in i]
-
-        return episodes
+        return [
+            j["file"]
+            for i in [x["episodes"] for x in cdnData["seasons"]]
+            for j in i
+        ]
 
     def _scrape_metadata(self):
         headers, cookies = self.getToken()

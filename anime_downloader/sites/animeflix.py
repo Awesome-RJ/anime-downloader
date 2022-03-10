@@ -70,9 +70,11 @@ class AnimeFlixEpisode(AnimeEpisode, sitename='animeflix'):
             f'{self.stream_url}={_id}').json()
 
         for a in download_link:  # Testing sources with selected language and provider
-            if a['lang'] == self.config['version']:
-                if a['provider'] == self.config['server']:
-                    return [('no_extractor', a['file'],)]
+            if (
+                a['lang'] == self.config['version']
+                and a['provider'] == self.config['server']
+            ):
+                return [('no_extractor', a['file'],)]
 
         logger.debug('Preferred server %s not found. Trying all supported servers in selected language.', server)
 

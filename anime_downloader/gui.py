@@ -128,7 +128,7 @@ class Window(QtWidgets.QMainWindow):
         Opens the window selector for users to select what folder they want to download to.
         '''
         filename = QtWidgets.QFileDialog.getExistingDirectory()
-        self.downloadDirectory.setText(str(filename) + '/')
+        self.downloadDirectory.setText(f'{str(filename)}/')
 
     def PopulateProviders(self):
         '''
@@ -213,7 +213,7 @@ class Window(QtWidgets.QMainWindow):
         return download_dir
 
     def generate_m3u8(self, animes):
-        filepath = tempfile.gettempdir() + '/MirrorList.m3u8'
+        filepath = f'{tempfile.gettempdir()}/MirrorList.m3u8'
         text = "#EXTM3U\n"
         for count, episode in enumerate(animes, 1):
             print(count)

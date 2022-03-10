@@ -12,18 +12,15 @@ logger = logging.getLogger(__name__)
 class Haloani(BaseExtractor):
     def _get_data(self):
         url = self.url
-        for a in range(10):
+        for _ in range(10):
             soup = helpers.soupify(helpers.get(url))
             regex = r"(PHNjcmlwd[^\"]{90,})|Base64\.decode\(\"([^\"]{90,})"
-            decode = re.search(regex, str(soup))
-            if decode:
-                decoded = base64.b64decode(decode.groups()[-1] + '==')
+            if decode := re.search(regex, str(soup)):
+                decoded = base64.b64decode(f'{decode.groups()[-1]}==')
                 break
 
             regex = r"window\.location = '(https://haloani\.ru/[^']*)"
-            window = re.search(regex, str(soup))
-
-            if window:
+            if window := re.search(regex, str(soup)):
                 url = window.group(1)
                 continue
             if len(soup.select('iframe')) == 0:

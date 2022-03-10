@@ -35,17 +35,15 @@ class AniMixPlay(Anime, sitename='animixplay'):
         versions_dict = {'v1': v1, 'v4': v4, 'v5': v5}
         logger.debug('Versions: {}'.format(versions_dict))
         data = []
-        for i in versions_dict:
-            for j in versions_dict[i]:
-                data.append(SearchResult(
+        for i, value in versions_dict.items():
+            data.extend(SearchResult(
                     title=j.text,
                     url='https://animixplay.com' + j.get('href'),
                     meta={'version': i},
                     meta_info={
                         'version_key_dubbed': '(Dub)',
                     }
-                ))
-
+                ) for j in value)
         return data
 
     def _scrape_episodes(self):
@@ -85,10 +83,7 @@ class AniMixPlay(Anime, sitename='animixplay'):
                 # Has elaborate list for all metadata on episodes.
                 episodes = []
                 for i in data:
-                    info_dict = i.get('src', None)
-                    # Looks like mp4 is always first in the list
-                    # Sometimes it returns None
-                    if info_dict:
+                    if info_dict := i.get('src', None):
                         episodes.append(info_dict[0].get('file', ''))
                     else:
                         episodes.append('')
@@ -116,22 +111,20 @@ class AniMixPlay(Anime, sitename='animixplay'):
             except json.decoder.JSONDecodeError:
                 # Link generation
                 url_dict = {'v5': '/e5/dZ40LAuJHZjuiWX', 'v1': '/e1/9DYiGVLD7ASqZ5p'}
-                if '/v5/' in self.url:
-                    version = 'v5'
-                else:
-                    version = 'v1'
-
+                version = 'v5' if '/v5/' in self.url else 'v1'
                 # Not sure if v5 id for data works.
-                data = (helpers.post('https://animixplay.to' + url_dict[version],
-                                     data={'id': url.split('/')[-1]}).json())['epstream']
+                data = helpers.post(
+                    f'https://animixplay.to{url_dict[version]}',
+                    data={'id': url.split('/')[-1]},
+                ).json()['epstream']
+
                 logger.debug('Data: {}'.format(data))
                 if '/v1/' in self.url:
                     return [data[i] for i in data if i != 'eptotal']
-                else:
-                    for i in servers:
-                        if jdata.get(i):
-                            return jdata.get(i)
-                    return
+                for i in servers:
+                    if jdata.get(i):
+                        return jdata.get(i)
+                return
 
     def _scrape_metadata(self):
         self.title = helpers.soupify(helpers.get(self.url).text).select_one("span.animetitle").get_text()
@@ -169,7 +162,5 @@ class AniMixPlayEpisode(AnimeEpisode, sitename='animixplay'):
     """
 
     def hash_url(self, url, length):
-        total = 0
-        for i in url:
-            total += ord(i)
+        total = sum(ord(i) for i in url)
         return total % length

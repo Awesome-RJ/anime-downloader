@@ -23,12 +23,20 @@ class mpv(BasePlayer):
         # Doesnt use the referer if it's none
         launchArgs = Config['watch']['mpv_arguments']
         if self.episode.source().referer:
-            return ['--input-conf=' + get_mpv_configfile(),
-                    '--http-header-fields=referer: ' + str(self.episode.source().referer),
-                    self.episode.source().stream_url, launchArgs]
+            return [
+                f'--input-conf={get_mpv_configfile()}',
+                '--http-header-fields=referer: '
+                + str(self.episode.source().referer),
+                self.episode.source().stream_url,
+                launchArgs,
+            ]
+
         else:
-            return ['--input-conf=' + get_mpv_configfile(),
-                    self.episode.source().stream_url, launchArgs]
+            return [
+                f'--input-conf={get_mpv_configfile()}',
+                self.episode.source().stream_url,
+                launchArgs,
+            ]
 
 
 def get_mpv_home():

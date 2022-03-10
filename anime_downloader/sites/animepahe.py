@@ -44,8 +44,7 @@ class AnimePaheEpisode(AnimeEpisode, sitename='animepahe'):
         for server in server_list:
             if server not in supported_servers:
                 continue
-            source = self._get_source(episode_id, server, session_id)
-            if source:
+            if source := self._get_source(episode_id, server, session_id):
                 sources.append(source)
 
         if sources:
@@ -117,18 +116,17 @@ class AnimePahe(Anime, sitename='animepahe'):
 
         if not episodes:
             raise NotFoundError(f'No episodes found for {self.url}')
-        else:
-            # Check if other pages exist since animepahe only loads
-            # first page and make subsequent calls to the api for every
-            # page
-            start_page = ani_json['current_page'] + 1
-            end_page = ani_json['last_page'] + 1
+        # Check if other pages exist since animepahe only loads
+        # first page and make subsequent calls to the api for every
+        # page
+        start_page = ani_json['current_page'] + 1
+        end_page = ani_json['last_page'] + 1
 
-            for i in range(start_page, end_page):
-                self.params['page'] = i
-                resp = helpers.get(self.api_url, params=self.params).json()
+        for i in range(start_page, end_page):
+            self.params['page'] = i
+            resp = helpers.get(self.api_url, params=self.params).json()
 
-                episodes = self._collect_episodes(resp['data'], episodes)
+            episodes = self._collect_episodes(resp['data'], episodes)
 
         return episodes
 

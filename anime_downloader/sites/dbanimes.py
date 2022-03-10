@@ -42,9 +42,8 @@ class DBAnimesEpisode(AnimeEpisode, sitename='dbanimes'):
         if extractor == 'mixdrop':
             # Checks redirects in mixdrop.
             redirect_regex = r"\s*window\.location\s*=\s*('|\")(.*?)('|\")"
-            redirect = re.search(redirect_regex, str(soup))
-            if redirect:
-                url = 'https://mixdrop.to' + redirect.group(2)
+            if redirect := re.search(redirect_regex, str(soup)):
+                url = f'https://mixdrop.to{redirect.group(2)}'
                 soup = helpers.soupify(helpers.get(url))
 
             try:

@@ -65,7 +65,7 @@ def command(ctx, anime_url, episode_range, player,
     fallback_qualities = Config['dl']['fallback_qualities']
     download_dir = Config['dl']['download_dir']
     quality = Config['dl']['quality']
-    url = Config['dl']['url'] if not url else url
+    url = url or Config['dl']['url']
     skip_download = Config['dl']['skip_download']
     chunk_size = Config['dl']['chunk_size']
     speed_limit = Config['dl']['speed_limit']
@@ -171,10 +171,9 @@ def command(ctx, anime_url, episode_range, player,
             if skip_fillers:
                 fillers = util.get_filler_episodes(query)
             for episode in animes:
-                if skip_fillers and fillers:
-                    if episode.ep_no in fillers:
-                        logger.info("Skipping episode {} because it is a filler.".format(episode.ep_no))
-                        continue
+                if skip_fillers and fillers and episode.ep_no in fillers:
+                    logger.info("Skipping episode {} because it is a filler.".format(episode.ep_no))
+                    continue
 
                 if download_metadata:
                     util.download_metadata(fixed_file_format, info.metadata, episode)

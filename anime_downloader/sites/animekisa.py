@@ -32,10 +32,9 @@ class AnimeKisa(Anime, sitename='animekisa'):
     def _scrape_episodes(self):
         soup = helpers.soupify(helpers.get(self.url))
         episode_links = soup.select('a.infovan')
-        episodes = [
+        return [
             'https://animekisa.tv' + '/' + i.get('href')
             for i in episode_links[::-1]]
-        return episodes
 
 
 class AnimeKisaEpisode(AnimeEpisode, sitename='animekisa'):

@@ -13,14 +13,13 @@ class KissAnimeX(Anime, sitename='kissanimex'):
         url = 'https://kissanimex.com/search?url=search'
         soup = helpers.soupify(helpers.get(url, params={'q': query}))
         items = soup.select('td > a')
-        search_results = [
+        return [
             SearchResult(
                 title=x.text,
                 url='https://kissanimex.com' + x['href']
             )
             for x in items
         ]
-        return search_results
 
     def _scrape_episodes(self):
         r = helpers.get(self.url).text
@@ -38,12 +37,11 @@ class KissAnimeX(Anime, sitename='kissanimex'):
         if not eps:
             logger.info('No episodes in selected language, falling back.')
             eps = soup.select_one(subbed_converter.get(not subbed)).select('td > a')
-            if not eps:
-                logger.info('No episodes found.')
-                return []
+        if not eps:
+            logger.info('No episodes found.')
+            return []
 
-        episodes = ['https://kissanimex.com' + x.get('href') for x in eps][::-1]
-        return episodes
+        return ['https://kissanimex.com' + x.get('href') for x in eps][::-1]
 
     def _scrape_metadata(self):
         self.title = helpers.soupify(helpers.get(self.url).text).select_one('a.bigChar').text

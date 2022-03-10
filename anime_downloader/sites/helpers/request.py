@@ -148,8 +148,7 @@ def soupify(res):
     """
     if isinstance(res, requests.Response):
         res = res.text
-    soup = BeautifulSoup(res, 'html.parser')
-    return soup
+    return BeautifulSoup(res, 'html.parser')
 
 
 def _log_response_body(res):
@@ -160,7 +159,7 @@ def _log_response_body(res):
     with open(file, 'w', encoding="utf-8") as f:
         f.write(res.text)
 
-    data_file = temp_dir + '/data.json'
+    data_file = f'{temp_dir}/data.json'
     if not os.path.exists(data_file):
         with open(data_file, 'w') as f:
             json.dump([], f)

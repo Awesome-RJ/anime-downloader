@@ -68,7 +68,7 @@ class NineAnimeEpisode(AnimeEpisode, sitename='9anime'):
     Python implementation of decode9AnimeURL, it's basically identical to the js one
     """
     def decodeString(self, str):
-        str1 = str[0:9]
+        str1 = str[:9]
         str2 = str[9:]
 
         encodedNum = 0

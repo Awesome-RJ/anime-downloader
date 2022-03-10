@@ -31,11 +31,12 @@ class Animeflv(Anime, sitename='animeflv'):
     @classmethod
     def search(cls, query):
         soup = helpers.soupify(helpers.get(f"{cls.DOMAIN}browse", params={"q": query}))
-        results = [
-            SearchResult(title=v.h3.text, url=cls.DOMAIN + v.a['href'], poster=v.img['src'])
+        return [
+            SearchResult(
+                title=v.h3.text, url=cls.DOMAIN + v.a['href'], poster=v.img['src']
+            )
             for v in soup.select('ul.ListAnimes > li')
         ]
-        return results
 
     def _scrape_episodes(self):
         # '<a href="/ver/' + episodes[i][1] + '/' + anime_info[2] + '-' + episodes[i][0] + '">'
@@ -50,9 +51,10 @@ class Animeflv(Anime, sitename='animeflv'):
             re.findall('episodes = (.*);', html)[0]
         )
         links = [
-            self.DOMAIN + f'ver/{epi[1]}/{anime_info[2]}-{epi[0]}'
+            f'{self.DOMAIN}ver/{epi[1]}/{anime_info[2]}-{epi[0]}'
             for epi in episodes
         ]
+
         return links[::-1]
 
     def _scrape_metadata(self):
@@ -106,10 +108,3 @@ class AnimeflvEpisode(AnimeEpisode, sitename='animeflv'):
                 })
 
         return self.sort_sources(sources_list)
-
-        """
-        # No supported server found, exit.
-        err = 'No supported host server found.  Try another site.'
-        args = [self.url]
-        raise NotFoundError(err, *args)
-        """

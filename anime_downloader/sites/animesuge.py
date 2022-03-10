@@ -12,15 +12,13 @@ class AnimeSuge(Anime, sitename="animesuge"):
     def search(cls, query):
         soup = helpers.soupify(helpers.get("https://animesuge.io/ajax/anime/search", params={"keyword": query}).json()['html'])
 
-        search_results = [
+        return [
             SearchResult(
                 title=x.find("div").text,
                 url="https://animesuge.io" + x.get('href')
             )
             for x in soup.select("a:not(.more)")
         ]
-
-        return search_results
 
     def _scrape_episodes(self):
         ep_url = "https://animesuge.io/ajax/anime/servers"
@@ -50,7 +48,7 @@ class AnimeSugeEpisode(NineAnimeEpisode, sitename='animesuge'):
         id_source_map = {'35': 'mp4upload', '40': 'streamtape'}
 
         sources_list = []
-        for key in id_source_map:
+        for key, server in id_source_map.items():
             if key in data_sources.keys():
                 _id = data_sources[key]
 
@@ -59,12 +57,8 @@ class AnimeSugeEpisode(NineAnimeEpisode, sitename='animesuge'):
                         link = helpers.get("https://animesuge.io/ajax/anime/episode",
                                            params={"id": _id}).json()['url']
                         break
-                    # Makes it more consistent.
                     except HTTPError:
                         time.sleep(5)
-                        continue
-
-                server = id_source_map[key]
                 sources_list.append({
                     'extractor': server,
                     'url': self.decodeString(link),

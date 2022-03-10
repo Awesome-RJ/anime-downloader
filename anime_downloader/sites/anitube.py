@@ -22,7 +22,6 @@ class AniTube(Anime, sitename="anitube"):
             )
             for x in html.select('div.aniItem > a')
         ]
-        return results
 
     def _scrape_episodes(self):
         html = helpers.soupify(helpers.get(self.url))

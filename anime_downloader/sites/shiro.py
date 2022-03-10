@@ -10,8 +10,7 @@ def get_token():
     r = helpers.get('https://shiro.is').text
     script = 'https://shiro.is' + re.search(r'src\=\"(\/static\/js\/main\..*?)\"', r)[1]  # noqa
     script = helpers.get(script).text
-    token = re.search(r'token\:\"(.*?)\"', script)[1]
-    return token
+    return re.search(r'token\:\"(.*?)\"', script)[1]
 
 
 class Shiro(Anime, sitename='shiro'):
@@ -25,52 +24,50 @@ class Shiro(Anime, sitename='shiro'):
             'token': cls.token
         }
         results = helpers.get('https://ani.api-web.site/advanced', params=params).json()['data']  # noqa
-        if 'nav' in results:
-            results = results['nav']['currentPage']['items']
-            search_results = [
-                SearchResult(
-                    title=i['name'],
-                    url='https://shiro.is/anime/' + i['slug'],
-                    poster='https://ani-cdn.api-web.site/' + i['image'],
-                    meta={'year': i['year']},
-                    meta_info={
-                        'version_key_dubbed': '(Sub)' if i['language'] == 'subbed' else '(Dub)'  # noqa
-                    }
-                )
-                for i in results
-            ]
-            search_results = sorted(search_results, key=lambda x: int(x.meta['year']))
-            return search_results
-        else:
+        if 'nav' not in results:
             return []
+        results = results['nav']['currentPage']['items']
+        search_results = [
+            SearchResult(
+                title=i['name'],
+                url='https://shiro.is/anime/' + i['slug'],
+                poster='https://ani-cdn.api-web.site/' + i['image'],
+                meta={'year': i['year']},
+                meta_info={
+                    'version_key_dubbed': '(Sub)' if i['language'] == 'subbed' else '(Dub)'  # noqa
+                }
+            )
+            for i in results
+        ]
+        search_results = sorted(search_results, key=lambda x: int(x.meta['year']))
+        return search_results
 
     def _scrape_episodes(self):
         self.token = get_token()
         slug = self.url.split('/')[-1]
         if 'episode' in slug:
-            api_link = 'https://ani.api-web.site/anime-episode/slug/' + slug
+            api_link = f'https://ani.api-web.site/anime-episode/slug/{slug}'
             r = helpers.get(api_link, params={'token': self.token}).json()
             slug = r['data']['anime_slug']
-        api_link = 'https://ani.api-web.site/anime/slug/' + slug
+        api_link = f'https://ani.api-web.site/anime/slug/{slug}'
         r = helpers.get(api_link, params={'token': self.token}).json()
-        if r['status'] == 'Found':
-            episodes = r['data']['episodes']
-            episodes = [
-                'https://ani.googledrive.stream/vidstreaming/vid-ad/' + x['videos'][0]['video_id']  # noqa
-                for x in episodes
-            ]
-            return episodes
-        else:
+        if r['status'] != 'Found':
             return []
+        episodes = r['data']['episodes']
+        episodes = [
+            'https://ani.googledrive.stream/vidstreaming/vid-ad/' + x['videos'][0]['video_id']  # noqa
+            for x in episodes
+        ]
+        return episodes
 
     def _scrape_metadata(self):
         self.token = get_token()
         slug = self.url.split('/')[-1]
         if 'episode' in slug:
-            api_link = 'https://ani.api-web.site/anime-episode/slug/' + slug
+            api_link = f'https://ani.api-web.site/anime-episode/slug/{slug}'
             r = helpers.get(api_link, params={'token': self.token}).json()
             slug = r['data']['anime_slug']
-        api_link = 'https://ani.api-web.site/anime/slug/' + slug
+        api_link = f'https://ani.api-web.site/anime/slug/{slug}'
         r = helpers.get(api_link, params={'token': self.token}).json()
         self.title = r['data']['name']
 

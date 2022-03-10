@@ -63,13 +63,15 @@ class YifyEpisode(AnimeEpisode, sitename='yify'):
         }
 
         for i in sources:
-            for j in extractors:
-                if j in i['link']:
-                    sources_list.append({
-                        'extractor': extractors[j][0],
-                        'url': i['link'],
-                        'server': extractors[j][1],
-                        'version': 'subbed'
-                    })
+            sources_list.extend(
+                {
+                    'extractor': extractors[j][0],
+                    'url': i['link'],
+                    'server': value[1],
+                    'version': 'subbed',
+                }
+                for j, value in extractors.items()
+                if j in i['link']
+            )
 
         return self.sort_sources(sources_list)

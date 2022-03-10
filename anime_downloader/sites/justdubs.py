@@ -19,20 +19,19 @@ class JustDubs(Anime, sitename='justdubs'):
         soup = helpers.soupify(results)
         results_data = soup.select("li.search-result a[href*='http://justdubs.org/watch-']")
         logger.debug(results_data)
-        search_results = [
+        return [
             SearchResult(
                 title=result.text,
                 url=result.get("href")
             )
             for result in results_data
         ]
-        return search_results
 
     def _scrape_episodes(self):
         soup = helpers.soupify(helpers.get(self.url))
         ret = [str(a['href'])
                for a in soup.find_all('a', {'class': 'list-group-item'})]
-        if ret == []:
+        if not ret:
             err = 'No Episodes Found in url "{}"'.format(self.url)
             args = [self.url]
             raise NotFoundError(err, *args)
@@ -50,11 +49,7 @@ class JustDubsEpisode(AnimeEpisode, sitename='justdubs'):
         servers = self.config['servers']
 
         """maps urls to extractors"""
-        server_links = {
-            'mp4upload': 'mp4upload.com',
-            'gcloud': 'gcloud.live',
-            'gcloud': 'fembed.com'
-        }
+        server_links = {'mp4upload': 'mp4upload.com', 'gcloud': 'fembed.com'}
 
         soup = helpers.soupify(helpers.get(self.url)).select('iframe')
 

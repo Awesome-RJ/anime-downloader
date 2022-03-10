@@ -24,15 +24,10 @@ class SubsPlease(Anime, sitename="subsplease"):
         slug_to_title_dict = dict(
             [(resp[key]["show"], resp[key]["page"]) for key in resp.keys()])
 
-        search_results = [
-            SearchResult(
-                title=x[0],
-                url="https://subsplease.org/shows/" + x[1],
-            )
+        return [
+            SearchResult(title=x[0], url=f"https://subsplease.org/shows/{x[1]}")
             for x in slug_to_title_dict.items()
         ]
-
-        return search_results
 
     def _scrape_episodes(self):
         soup = helpers.soupify(helpers.get(self.url))
@@ -42,11 +37,11 @@ class SubsPlease(Anime, sitename="subsplease"):
         resp = helpers.get(self.api_url, params={
                            "f": "show", "tz": "", "sid": sid}).json()
 
-        episodes = []
+        episodes = [
+            f"{self.url}/episode/{sid}/{episode}"
+            for episode in resp["episode"].keys()
+        ]
 
-        for episode in resp["episode"].keys():
-            # Construct a fake url for AnimeEpisode to use
-            episodes.append(f"{self.url}/episode/{sid}/{episode}")
 
         return episodes[::-1]
 

@@ -9,19 +9,21 @@ class Itsaturday(Anime, sitename='itsaturday'):
     @classmethod
     def search(cls, query):
         soup = helpers.soupify(helpers.get(f"{cls.DOMAIN}/search/", params={'q': query}))
-        results = [
-            SearchResult(title=t.text, url=cls.DOMAIN + t.attrs['href'], poster=t.img.attrs.get('data-src', None))
+        return [
+            SearchResult(
+                title=t.text,
+                url=cls.DOMAIN + t.attrs['href'],
+                poster=t.img.attrs.get('data-src', None),
+            )
             for t in soup.select('.preview > a')
         ]
-        return results
 
     def _scrape_episodes(self):
         soup = helpers.soupify(helpers.get(self.url))
-        ret = [
+        return [
             (t.text, self.DOMAIN + t.attrs['href'])
             for t in soup.select('a.link-group-item')
         ]
-        return ret
 
     def _scrape_metadata(self):
         soup = helpers.soupify(helpers.get(self.url))

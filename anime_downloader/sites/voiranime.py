@@ -53,13 +53,15 @@ class VoirAnimeEpisode(AnimeEpisode, sitename='voiranime'):
 
         sources_list = []
         for i in sources:
-            for j in extractors:
-                if j in i:
-                    sources_list.append({
-                        'extractor': extractors[j][0],
-                        'url': i,
-                        'server': extractors[j][1],
-                        'version': 'subbed'
-                    })
+            sources_list.extend(
+                {
+                    'extractor': extractors[j][0],
+                    'url': i,
+                    'server': value[1],
+                    'version': 'subbed',
+                }
+                for j, value in extractors.items()
+                if j in i
+            )
 
         return self.sort_sources(sources_list)

@@ -86,9 +86,7 @@ class Anime:
 
     @classmethod
     def verify_url(cls, url):
-        if cls.sitename in url:
-            return True
-        return False
+        return cls.sitename in url
 
     @property
     def config(self):
@@ -392,7 +390,11 @@ class AnimeEpisode:
         sorted_by_lang = list(sorted(sorted_by_server, key=lambda x: x['version'] == version, reverse=True))
         logger.debug('Sorted sources : {}'.format(sorted_by_lang))
 
-        return '' if not sorted_by_lang else [(sorted_by_lang[0]['extractor'], sorted_by_lang[0]['url'])]
+        return (
+            [(sorted_by_lang[0]['extractor'], sorted_by_lang[0]['url'])]
+            if sorted_by_lang
+            else ''
+        )
 
     def download(self, force=False, path=None,
                  format='{anime_title}_{ep_no}', range_size=None):
@@ -411,15 +413,11 @@ class AnimeEpisode:
         # TODO: Remove this shit
         logger.info('Downloading {}'.format(self.pretty_title))
         if format:
-            file_name = util.format_filename(format, self) + '.mp4'
+            file_name = f'{util.format_filename(format, self)}.mp4'
 
         if path is None:
-            path = './' + file_name
-        if path.endswith('.mp4'):
-            path = path
-        else:
-            path = os.path.join(path, file_name)
-
+            path = f'./{file_name}'
+        path = path if path.endswith('.mp4') else os.path.join(path, file_name)
         Downloader = get_downloader('pySmartDL')
         downloader = Downloader(self.source(),
                                 path, force, range_size=range_size)
@@ -475,6 +473,4 @@ class SearchResult:
         """
         pretty_metadata is the prettified version of metadata
         """
-        if self.meta:
-            return ' | '.join(val for _, val in self.meta.items())
-        return ''
+        return ' | '.join(val for _, val in self.meta.items()) if self.meta else ''

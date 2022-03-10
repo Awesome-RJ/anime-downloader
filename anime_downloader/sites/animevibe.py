@@ -59,7 +59,7 @@ class AnimeVibeEpisode(AnimeEpisode, sitename='animevibe'):
             # Choosing 3rd-party link is not implemented yet
             for j in extractors:
                 # the 3rd-party url can contain other extractors
-                if j in url and not ('3rdparty' in url and j != '3rdparty'):
+                if j in url and ('3rdparty' not in url or j == '3rdparty'):
                     extractor = 'gcloud' if j == 'fembed' else j  # fembed gets passed to gcloud too
                     source = {
                         'extractor': extractor,

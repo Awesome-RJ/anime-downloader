@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 class RapidVideo(BaseExtractor):
     def _get_data(self):
-        url = self.url + '&q=' + self.quality
+        url = f'{self.url}&q={self.quality}'
         logger.debug('Calling Rapid url: {}'.format(url))
         headers = self.headers
         headers['referer'] = url
@@ -45,8 +45,6 @@ class RapidVideo(BaseExtractor):
             title = ''
             thumbnail = ''
             logger.debug(e)
-            pass
-
         return {
             'stream_url': stream_url,
             'meta': {

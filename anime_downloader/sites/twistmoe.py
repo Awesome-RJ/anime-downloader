@@ -45,17 +45,15 @@ class TwistMoe(Anime, sitename='twist.moe'):
         if 'being redirected' in req.text:
             logger.debug('Tring to extract cookie')
             cookie = get_cookie(req)
-            logger.debug('Got cookie: ' + cookie)
+            logger.debug(f'Got cookie: {cookie}')
             headers['cookie'] = cookie
             # XXX: Can't use helpers.get here becuse that one is cached. Investigate
             req = helpers.get('https://twist.moe/api/anime', headers=headers)
         all_anime = req.json()
-        animes = []
-        for anime in all_anime:
-            animes.append(SearchResult(
+        animes = [SearchResult(
                 title=anime['title'],
                 url='https://twist.moe/a/' + anime['slug']['slug'] + '/',
-            ))
+            ) for anime in all_anime]
         animes = [ani[0] for ani in process.extract(query, animes)]
         return animes
 
@@ -106,7 +104,7 @@ def bytes_to_key(salt, output=48):
 
 def decrypt(encrypted):
     encrypted = base64.b64decode(encrypted)
-    assert encrypted[0:8] == b"Salted__"
+    assert encrypted[:8] == b"Salted__"
     salt = encrypted[8:16]
     key_iv = bytes_to_key(salt, 32 + 16)
     key = key_iv[:32]
@@ -117,6 +115,10 @@ def decrypt(encrypted):
 
 def get_cookie(soup):
     js = soup.select_one('script').text
-    js = "location = {'reload': ()=>true};document = {}; \n" + js + f"console.log(document.cookie)"
-    cookie = eval_in_node(js).strip()
-    return cookie
+    js = (
+        "location = {'reload': ()=>true};document = {}; \n"
+        + js
+        + "console.log(document.cookie)"
+    )
+
+    return eval_in_node(js).strip()

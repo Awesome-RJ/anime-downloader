@@ -16,10 +16,8 @@ class Mixdrop(BaseExtractor):
         redirect_regex = r"\s*window\.location\s*=\s*('|\")(.*?)('|\")"
         # allow_redirects=True doesn't seem to be working
         soup = helpers.get(self.url, allow_redirects=True).text
-        redirect = re.search(redirect_regex, soup)
-
-        if redirect:
-            url = 'https://mixdrop.to' + redirect.group(2)
+        if redirect := re.search(redirect_regex, soup):
+            url = f'https://mixdrop.to{redirect.group(2)}'
             soup = helpers.get(url).text
 
         if 'WE ARE SORRY' in soup:

@@ -8,14 +8,13 @@ class AnimeChameleon(Anime, sitename='gurminder'):
     @classmethod
     def search(cls, query):
         soup = helpers.soupify(helpers.get('http://anime.gurminderboparai.com/search/{}'.format(query)).text).find('div', class_='panel-body').find_all('a')
-        search_results = [
+        return [
             SearchResult(
                 title=x.text,
                 url=x['href']
             )
             for x in soup
         ]
-        return search_results
 
     def _scrape_episodes(self):
         soup = helpers.soupify(helpers.get(self.url).text).find('ul', id='episodes-list').find_all('li')

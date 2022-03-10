@@ -22,7 +22,6 @@ class Watcher:
 
     def __init__(self):
         self.sorted = None
-        pass
 
     def new(self, url):
         AnimeInfo = self._get_anime_info_class(url)
@@ -42,7 +41,7 @@ class Watcher:
         ))
         click.echo('-' * 65)
         fmt_str = '{:5} | {:35.35} |  {:3}/{:<3} | {:^5} | {}'
-        if not filt in [None, 'all']:
+        if filt not in [None, 'all']:
             animes = [i for i in animes if i.watch_status == filt]
 
         for idx, anime in enumerate(animes):
@@ -64,8 +63,7 @@ class Watcher:
         if isinstance(anime_name, int):
             return animes[anime_name]
 
-        match = process.extractOne(anime_name, animes, score_cutoff=40)
-        if match:
+        if match := process.extractOne(anime_name, animes, score_cutoff=40):
             anime = match[0]
             logger.debug('Anime: {!r}, episodes_done: {}'.format(
                 anime, anime.episodes_done))

@@ -44,22 +44,23 @@ class DarkAnimeEpisode(AnimeEpisode, sitename='darkanime'):
 
         resp = helpers.soupify(helpers.get(self.url).text).find_all('script')  # [-3].string
         for i in resp:
-            if i.string:
-                if 'sources' in i.string:
-                    res = i.string
+            if i.string and 'sources' in i.string:
+                res = i.string
 
         hosts = json.loads(re.search(r"(\[[^)]+\])", res).group(1))
         logger.debug('Hosts: {}'.format(hosts))
 
         sources_list = []
         for i in hosts:
-            for j in server_links:
-                if i.get('host') in j and i.get('source'):
-                    sources_list.append({
-                        'extractor': j,
-                        'url': server_links[j].format(i['source']),
-                        'server': j,
-                        'version': i['source']
-                    })
+            sources_list.extend(
+                {
+                    'extractor': j,
+                    'url': value.format(i['source']),
+                    'server': j,
+                    'version': i['source'],
+                }
+                for j, value in server_links.items()
+                if i.get('host') in j and i.get('source')
+            )
 
         return self.sort_sources(sources_list)

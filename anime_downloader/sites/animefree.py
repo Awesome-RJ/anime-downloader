@@ -39,7 +39,7 @@ class AnimeFree(Anime, sitename='animefree'):
                 maxEp = 1
                 break
             maxEp = int(helpers.soupify(d).select("li")[0].text)
-            if not maxEp == i * 100:
+            if maxEp != i * 100:
                 break
         return [f"{i},{_id},{_referer}" for i in range(1, maxEp + 1)]
         # you gotta know all three, the id of the episode, the id of the movie, and the referer
@@ -61,13 +61,12 @@ class AnimeFreeEpisode(AnimeEpisode, sitename='kissanimefree'):
                                referer=f"https://kissanimefree.net/episode/{_referer}-episode-{realId}/",
                                data={"action": "kiss_player_ajax", "server": "vidcdn", "filmId": realId}).text
 
-        realUrl = realUrl if realUrl.startswith('http') else "https:" + realUrl
+        realUrl = realUrl if realUrl.startswith('http') else f"https:{realUrl}"
 
         txt = helpers.get(realUrl).text
         # gets src="//vidstreaming.io/loadserver.php?id=MTIyNjM4&title=Naruto"></iframe>
         vidstream_regex = r'src=[^\s]*(((vidstreaming\.io)|(gogo-stream\.com))[^"\']*)'
-        surl = re.search(vidstream_regex, txt)
-        if surl:
+        if surl := re.search(vidstream_regex, txt):
             if surl.group(1):
                 return [('vidstream', surl.group(1))]
 

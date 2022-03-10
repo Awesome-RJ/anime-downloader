@@ -78,16 +78,26 @@ class KickAssEpisode(AnimeEpisode, sitename='kickass'):
             sources = re.search(regex, str(soup))
             if sources:
                 return [('vidstream', sources.group(1),)]
-            else:
-                if len(ext_servers) == 0:
-                    return ''
-                for i in range(2):
-                    for a in ext_servers:
-                        if a in ext_fallback or i == 1:
-                            if a['name'] == 'Vidstreaming' or a['name'] == 'Vidcdn':
-                                return [('vidstream', a['link'],)]
-                            else:
-                                return [('haloani', a['link'],)]
+            if not ext_servers:
+                return ''
+            for i in range(2):
+                for a in ext_servers:
+                    if a in ext_fallback or i == 1:
+                        return (
+                            [
+                                (
+                                    'vidstream',
+                                    a['link'],
+                                )
+                            ]
+                            if a['name'] in ['Vidstreaming', 'Vidcdn']
+                            else [
+                                (
+                                    'haloani',
+                                    a['link'],
+                                )
+                            ]
+                        )
 
         sources = json.loads(sources.group())
         for a in sources:

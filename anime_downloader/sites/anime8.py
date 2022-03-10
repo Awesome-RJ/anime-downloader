@@ -14,7 +14,7 @@ class Anime8(Anime, sitename='anime8'):
         soup = helpers.soupify(helpers.get('https://anime8.ru/Search/', params={'s': query}).text)
         results = soup.select('div.ml-item > a')
 
-        search_results = [
+        return [
             SearchResult(
                 title=i.find('h2').text,
                 url=i['href'],
@@ -24,7 +24,6 @@ class Anime8(Anime, sitename='anime8'):
                 })
             for i in results
         ]
-        return search_results
 
     def _scrape_episodes(self):
         """

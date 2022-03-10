@@ -22,7 +22,7 @@ class Streamango(BaseExtractor):
         js = "window = {}; \n" + js + f"console.log(window.d({src}))"
         logger.debug(f"Evaling: {js}")
         output = eval_in_node(js)
-        stream = "https:" + output
+        stream = f"https:{output}"
         return {
             'stream_url': stream,
         }

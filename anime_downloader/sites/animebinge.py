@@ -17,14 +17,13 @@ class AnimeBinge(Anime, sitename='animebinge'):
         soup = helpers.soupify(response)
         results = soup.select('a#epilink')
 
-        search_results = [
+        return [
             SearchResult(
                 title=x.text,
                 url=x['href']
             )
             for x in results
         ]
-        return search_results
 
     def _scrape_episodes(self):
         eps = helpers.soupify(helpers.get(self.url)).select('div.episode-wrap > a')
@@ -46,8 +45,7 @@ class AnimeBingeEpisode(AnimeEpisode, sitename='animebinge'):
         # And parses the json in the script.
         episode_regex = r'var\s*episode\s*=\s*({[\W\w]*?);\s*<\/script>'
 
-        source = re.search(episode_regex, str(html))
-        if source:
+        if source := re.search(episode_regex, str(html)):
             source_json = json.loads(source.group(1))['videos']
         else:
             return ''
@@ -63,7 +61,7 @@ class AnimeBingeEpisode(AnimeEpisode, sitename='animebinge'):
         sources_list = []
         for i in source_json:
             if mappings.get(i.get('host')):
-                extractor = 'no_extractor' if not get_extractor(i['host']) else i['host']
+                extractor = i['host'] if get_extractor(i['host']) else 'no_extractor'
                 sources_list.append({
                     'extractor': extractor,
                     'url': mappings[i['host']].format(i['id']),

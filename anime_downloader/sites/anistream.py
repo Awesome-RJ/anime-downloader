@@ -32,8 +32,7 @@ class Anistream(Anime, sitename='anistream.xyz'):
         versions = soup.select_one('.card-body').select('ul')
 
         def get_links(version):
-            links = [v.attrs['href'] for v in version.select('a')][::-1]
-            return links
+            return [v.attrs['href'] for v in version.select('a')][::-1]
         dubbed = get_links(versions[1])
         subbed = get_links(versions[0])
         # TODO: This should be handled more gracefully

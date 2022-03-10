@@ -28,10 +28,11 @@ class Kwik(BaseExtractor):
 
         cookies = util.get_hcaptcha_cookies(self.url)
 
-        if not cookies:
-            resp = util.bypass_hcaptcha(self.url)
-        else:
-            resp = requests.get(self.url, cookies=cookies)
+        resp = (
+            requests.get(self.url, cookies=cookies)
+            if cookies
+            else util.bypass_hcaptcha(self.url)
+        )
 
         title_re = re.compile(r'title>(.*)<')
 

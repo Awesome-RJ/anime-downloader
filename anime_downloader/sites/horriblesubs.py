@@ -16,10 +16,7 @@ class HorribleSubs(Anime, sitename='horriblesubs'):
         titlesDict = dict([(re.search('(.*)-', x.find(text=True, recursive=False)).group(1).strip(), x['href']) for x in soup.select('li > a')])
 
         return [
-            SearchResult(
-                title=x[0],
-                url='https://horriblesubs.info' + x[1]
-            )
+            SearchResult(title=x[0], url=f'https://horriblesubs.info{x[1]}')
             for x in titlesDict.items()
         ]
 

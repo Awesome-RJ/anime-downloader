@@ -62,11 +62,7 @@ def command(anime_name, new, update_all, _list, quality, remove,
     watcher = _watch.Watcher()
 
     if new:
-        if anime_name:
-            query = anime_name
-        else:
-            query = click.prompt('Enter a anime name or url', type=str)
-
+        query = anime_name or click.prompt('Enter a anime name or url', type=str)
         url, _ = util.search(query, provider)
 
         watcher.new(url)
@@ -90,8 +86,7 @@ def command(anime_name, new, update_all, _list, quality, remove,
             watcher.update_anime(anime)
 
     if mal_import:
-        PATH = anime_name  # Hack, but needed to prompt the user. Uses the anime name as parameter.
-        if PATH:
+        if PATH := anime_name:
             query = PATH
         else:
             query = click.prompt('Enter the file path for the MAL .xml file', type=str)
@@ -134,15 +129,14 @@ def command_parser(command):
     # Group 3 for quoted command
     command_regex = r'(("|\')(.*?)("|\')|.*?\s)'
     matches = re.findall(command_regex, command + " ")
-    commands = [i[0].strip('"').strip("'").strip() for i in matches if i[0].strip()]
-    return commands
+    return [i[0].strip('"').strip("'").strip() for i in matches if i[0].strip()]
 
 
 def list_animes(watcher, quality, download_dir, imp=None, _filter=None):
 
     click.echo('Available Commands: swap, new')
     watcher.list(filt=_filter)
-    inp = click.prompt('Select an anime', default="1") if not imp else imp
+    inp = imp or click.prompt('Select an anime', default="1")
     provider = Config['watch']['provider']
     # Not a number as input and command
     if not str(inp).isnumeric():
@@ -152,15 +146,22 @@ def list_animes(watcher, quality, download_dir, imp=None, _filter=None):
             vals = args[1:]
             if key == 'new':
                 query = vals[0]
-                if '--provider' in vals:
-                    if vals.index('--provider') + 1 < len(vals):
-                        provider = vals[vals.index('--provider') + 1]
+                if '--provider' in vals and vals.index('--provider') + 1 < len(
+                    vals
+                ):
+                    provider = vals[vals.index('--provider') + 1]
                 url, _ = util.search(query, provider)
                 watcher.new(url)
 
-            if key == 'swap':
-                if vals[0] in ['all', 'watching', 'completed', 'planned', 'dropped', 'hold']:
-                    return list_animes(watcher, quality, download_dir, imp=imp, _filter=vals[0])
+            if key == 'swap' and vals[0] in [
+                'all',
+                'watching',
+                'completed',
+                'planned',
+                'dropped',
+                'hold',
+            ]:
+                return list_animes(watcher, quality, download_dir, imp=imp, _filter=vals[0])
 
             return list_animes(watcher, quality, download_dir, imp=imp)
         else:
@@ -184,9 +185,11 @@ def list_animes(watcher, quality, download_dir, imp=None, _filter=None):
         click.echo('Provider: {}'.format(anime.sitename))
         click.echo('Score: {}'.format(anime.score))
         click.echo('Watch Status: {}'.format(anime.watch_status))
-        meta = ''
-        for k, v in anime.meta.items():
-            meta += '{}: {}\n'.format(k, click.style(str(v), bold=True))
+        meta = ''.join(
+            '{}: {}\n'.format(k, click.style(str(v), bold=True))
+            for k, v in anime.meta.items()
+        )
+
         click.echo(meta)
 
         click.echo('Available Commands: set, remove, update, watch, back,'
@@ -307,22 +310,21 @@ def watch_anime(watcher, anime, quality, download_dir):
                 sys.exit(1)
 
             returncode = player.play()
-            if returncode == player.STOP:
+            if (
+                returncode == player.STOP
+                or returncode != player.CONNECT_ERR
+                and returncode != player.PREV
+                and not autoplay
+            ):
                 # Returns to watch.
                 return
 
             elif returncode == player.CONNECT_ERR:
                 logger.warning("Couldn't connect. Retrying. "
                                "Attempt #{}".format(tries + 1))
-                continue
-
             elif returncode == player.PREV:
                 anime.episodes_done -= 2
                 watcher.update(anime)
                 break
-            # If no other return codes, basically when the player finishes.
-            # Can't find the returncode for success.
-            elif autoplay:
-                break
             else:
-                return
+                break

@@ -91,12 +91,14 @@ class DownloaderSession:
         if key not in self._cache:
             if key == 'http':
                 self._cache[key] = downloader.get_downloader('http')()
-            if disable_ssl:
-                if '_disable_ssl_additional' in self.external_downloaders[key]:
-                    self.external_downloaders[key]['cmd_opts'] = {
-                        **self.external_downloaders[key]['cmd_opts'],
-                        **self.external_downloaders[key]['_disable_ssl_additional']
-                    }
+            if (
+                disable_ssl
+                and '_disable_ssl_additional' in self.external_downloaders[key]
+            ):
+                self.external_downloaders[key]['cmd_opts'] = {
+                    **self.external_downloaders[key]['cmd_opts'],
+                    **self.external_downloaders[key]['_disable_ssl_additional']
+                }
             self._cache[key] = downloader.get_downloader('ext')(
                 options=self.external_downloaders[key])
         return self._cache[key]

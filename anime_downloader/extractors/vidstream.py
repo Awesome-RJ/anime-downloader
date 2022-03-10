@@ -68,11 +68,11 @@ class VidStream(BaseExtractor):
         soup_title = soup.select('input#title')[0]['value']
         soup_typesub = soup.select('input#typesub')[0].get('value', 'SUB')
 
-        sources_json = helpers.get(f'https://gogo-stream.com/ajax.php', params={
-            'id': soup_id,
-            'typesub': soup_typesub,
-            'title': soup_title,
-        }, referer=self.url).json()
+        sources_json = helpers.get('https://gogo-stream.com/ajax.php', params={
+                'id': soup_id,
+                'typesub': soup_typesub,
+                'title': soup_title,
+            }, referer=self.url).json()
 
         logger.debug('Sources json: {}'.format(str(sources_json)))
         """
@@ -92,16 +92,19 @@ class VidStream(BaseExtractor):
 
         servers = Config._read_config()['siteconfig']['vidstream']['servers']
 
-        for i in servers:
-            if i in sources_keys:
-                if sources_keys[i] in sources_json:
-                    if 'file' in sources_json[sources_keys[i]][0]:
-                        return {
-                            'stream_url': sources_json[sources_keys[i]][0]['file'],
-                            'referer': self.url
-                        }
-
-        return {'stream_url': ''}
+        return next(
+            (
+                {
+                    'stream_url': sources_json[sources_keys[i]][0]['file'],
+                    'referer': self.url,
+                }
+                for i in servers
+                if i in sources_keys
+                and sources_keys[i] in sources_json
+                and 'file' in sources_json[sources_keys[i]][0]
+            ),
+            {'stream_url': ''},
+        )
 
 
 class Extractor:

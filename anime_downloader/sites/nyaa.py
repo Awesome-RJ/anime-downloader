@@ -23,7 +23,10 @@ class Nyaa(Anime, sitename='nyaa'):
         self = cls()
 
         parameters = {"f": filters[self.config["filter"]], "c": categories[self.config["category"]], "q": query, "s": "size", "o": "desc"}
-        search_results = helpers.soupify(helpers.get(f"https://nyaa.si/", params=parameters))
+        search_results = helpers.soupify(
+            helpers.get("https://nyaa.si/", params=parameters)
+        )
+
 
         search_results = [
             SearchResult(

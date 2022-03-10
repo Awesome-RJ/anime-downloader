@@ -21,14 +21,13 @@ class Anime4(Anime, sitename='4anime'):
         soup = helpers.soupify(helpers.post(
             "https://4anime.to/wp-admin/admin-ajax.php", data=data)).select('div.info > a')
 
-        search_results = [
+        return [
             SearchResult(
                 title=i.text,
                 url=i['href']
             )
             for i in soup
         ]
-        return search_results
 
     def _scrape_episodes(self):
         soup = helpers.soupify(helpers.get(self.url)).select(
@@ -66,7 +65,5 @@ class Anime4Episode(AnimeEpisode, sitename='4anime'):
     """
 
     def hash_url(self, url, length):
-        total = 0
-        for i in url:
-            total += ord(i)
+        total = sum(ord(i) for i in url)
         return total % length

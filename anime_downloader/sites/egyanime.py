@@ -14,19 +14,18 @@ class EgyAnime(Anime, sitename='egyanime'):
     def search(cls, query):
         soup = helpers.soupify(helpers.get('https://www.egyanime.com/a.php', params={'term': query}).text)
 
-        search_results = [
+        return [
             SearchResult(
                 title = i.text,
                 url= "https://www.egyanime.com/" + i['href']
                 )
             for i in soup.find_all('a', href=True)
         ]
-        return search_results
 
     def _scrape_episodes(self):
         soup = helpers.soupify(helpers.get(self.url).text)
         eps = ["https://www.egyanime.com/" + x['href'] for x in soup.select('a.tag.is-dark.is-medium.m-5')]
-        if len(eps) == 0:
+        if not eps:
             return [self.url.replace('do', 'w')]
         return eps
 
@@ -63,6 +62,5 @@ class EgyAnimeEpisode(AnimeEpisode, sitename='egyanime'):
                 })
         if sources:
             return self.sort_sources(sources)
-        else:
-            logger.error('No episode source was found, file might have been deleted.')
-            return
+        logger.error('No episode source was found, file might have been deleted.')
+        return

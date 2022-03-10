@@ -168,9 +168,17 @@ def search_anilist(query, choice=None):
             logger.error('No results found in anilist')
             raise NameError
 
-        search_results = [AnimeInfo(url='https://anilist.co/anime/' + str(i['id']), title=i['title']['romaji'],
-                                    jp_title=i['title']['native'], episodes=int(i['episodes']), metadata=i) for i in results if i['episodes'] != None]
-        return search_results
+        return [
+            AnimeInfo(
+                url='https://anilist.co/anime/' + str(i['id']),
+                title=i['title']['romaji'],
+                jp_title=i['title']['native'],
+                episodes=int(i['episodes']),
+                metadata=i,
+            )
+            for i in results
+            if i['episodes'] != None
+        ]
 
     search_results = search(query)
 
@@ -191,7 +199,12 @@ def fuzzy_match_metadata(seasons_info, search_results):
         for j in search_results:
             # Allows for returning of cleaned title by the provider using 'title_cleaned' in meta_info.
             # To make fuzzy matching better.
-            title_provider = j.title.strip() if not j.meta_info.get('title_cleaned') else j.meta_info.get('title_cleaned').strip()
+            title_provider = (
+                j.meta_info.get('title_cleaned').strip()
+                if j.meta_info.get('title_cleaned')
+                else j.title.strip()
+            )
+
             # On some titles this will be None
             # causing errors below
             title_info = i.title
@@ -204,7 +217,7 @@ def fuzzy_match_metadata(seasons_info, search_results):
             version_use = version == 'dubbed'
             # Adds something like (Sub) or (Dub) to the title
             key_used = j.meta_info.get('version_key_dubbed', '') if version_use else j.meta_info.get('version_key_subbed', '')
-            title_info += ' ' + key_used
+            title_info += f' {key_used}'
             title_info = title_info.strip()
 
             # TODO add synonyms

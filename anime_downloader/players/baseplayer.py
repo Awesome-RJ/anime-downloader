@@ -47,6 +47,4 @@ class BasePlayer(metaclass=ABCMeta):
         cmd = [self._get_executable()] + self.args
         logger.debug('Command: {}'.format(cmd))
         self.process = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-        returncode = self.process.wait()
-
-        return returncode
+        return self.process.wait()

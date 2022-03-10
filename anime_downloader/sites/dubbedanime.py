@@ -14,14 +14,17 @@ class Dubbedanime(Anime, sitename='dubbedanime'):
 
     @classmethod
     def search(cls, query):
-        search_results = helpers.post(f'https://ww5.dubbedanime.net/ajax/paginate',
-                                      data={
-                                          'query[search]': query,
-                                          'what': 'query',
-                                          'model': 'Anime',
-                                          'size': 30,
-                                          'letter': 'all',
-                                      }).json()
+        search_results = helpers.post(
+            'https://ww5.dubbedanime.net/ajax/paginate',
+            data={
+                'query[search]': query,
+                'what': 'query',
+                'model': 'Anime',
+                'size': 30,
+                'letter': 'all',
+            },
+        ).json()
+
         search_results = [
             SearchResult(
                 title=search_results['results'][a]['title'],
@@ -70,21 +73,20 @@ class DubbedanimeEpisode(AnimeEpisode, sitename='dubbedanime'):
 
         for a in servers:  # trying all supported servers in order using the correct language
             for b in sources:
-                if b['type'] == version:
-                    if b['host'] == a:
-                        if get_extractor(a) == None:
-                            continue
-                        else:
-                            provider = a[:]
-                        embed = server_links.get(provider, '{}').format(b['id'], x)
-                        return [(provider, embed,)]
+                if b['type'] == version and b['host'] == a:
+                    if get_extractor(a) is None:
+                        continue
+                    else:
+                        provider = a[:]
+                    embed = server_links.get(provider, '{}').format(b['id'], x)
+                    return [(provider, embed,)]
 
         logger.debug('No servers found in selected language. Trying all supported servers')
 
         for a in servers:  # trying all supported servers in order
             for b in sources:
                 if b['host'] == a:
-                    if get_extractor(a) == None:
+                    if get_extractor(a) is None:
                         continue
                     else:
                         provider = a[:]

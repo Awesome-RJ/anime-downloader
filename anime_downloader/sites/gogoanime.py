@@ -91,12 +91,10 @@ class GogoAnime(Anime, sitename='gogoanime'):
         soup = helpers.soupify(helpers.get(self._episode_list_url,
                                            params=params))
 
-        epurls = list(
+        return list(
             reversed([self._base_url + i.get('href').strip()
                       for i in soup.select('li a')])
         )
-
-        return epurls
 
     def _scrape_metadata(self):
         soup = helpers.soupify(helpers.get(self.url))

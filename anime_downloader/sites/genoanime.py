@@ -11,15 +11,13 @@ class GenoAnime(Anime, sitename="genoanime"):
         soup = helpers.soupify(helpers.post(
             "https://genoanime.com/data/searchdata.php", data={"anime": query}))
 
-        search_results = [
+        return [
             SearchResult(
                 title=x.text,
                 url=x.get("href").replace("./", "https://genoanime.com/")
             )
             for x in soup.select("h5 > a[href]")
         ]
-
-        return search_results
 
     def _scrape_episodes(self):
         soup = helpers.soupify(helpers.get(self.url))
